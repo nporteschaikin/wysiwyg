@@ -15,6 +15,6 @@ $(document).ready(
 ## Options
 * __linkPrompt (string):__ The message in the link prompt
 * __buttons (object):__ Selectors for bold, italic, and link buttons
-** __bold__
-** __italic__
-** __link__
+	* __bold__
+	* __italic__
+	* __link__
