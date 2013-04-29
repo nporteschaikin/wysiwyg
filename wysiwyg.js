@@ -6,7 +6,9 @@
 		italic: '.italic',
 		smaller: '.smaller',
 		larger: '.larger',
-		link: '.link'
+		link: '.link',
+		undo: '.undo',
+		redo: '.redo'
 	},
 	
 	methods = {
@@ -76,6 +78,7 @@
 		el.append(input);
 		__setSettings(el, {input: input});
 		__getElement(el, 'textarea').attr('contenteditable', true);
+		__getElement(el, 'textarea').css('overflow', 'auto');
 		
 	}
 	
@@ -93,6 +96,10 @@
 			__getElement(el, 'larger').bind(__getBindName('click'), function (e) { e.preventDefault(); __larger(); } );
 		if ( __elementExists(el, 'link') ) 
 			__getElement(el, 'link').bind(__getBindName('click'), function (e) { e.preventDefault(); __link(); } );
+		if ( __elementExists(el, 'undo') ) 
+			__getElement(el, 'undo').bind(__getBindName('click'), function (e) { e.preventDefault(); __undo(); } );
+		if ( __elementExists(el, 'redo') ) 
+			__getElement(el, 'redo').bind(__getBindName('click'), function (e) { e.preventDefault(); __redo(); } );
 		
 	}
 	
@@ -149,6 +156,14 @@
 	
 	function __link () {
 		__exec('CreateLink', prompt('Please enter a URL.'));
+	}
+	
+	function __undo () {
+		__exec('undo');
+	}
+	
+	function __redo () {
+		__exec('redo');
 	}
 	
 	function __getBindName ( e ) {
