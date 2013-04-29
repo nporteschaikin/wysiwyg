@@ -1,7 +1,12 @@
 (function( $ ){
 	
 	var defaults = {
-		linkPrompt: "Please enter a URL."
+		textarea: '.textarea', 
+		bold: '.bold', 
+		italic: '.italic',
+		smaller: '.smaller',
+		larger: '.larger',
+		link: '.link'
 	},
 	
 	methods = {
@@ -19,7 +24,7 @@
 				}
 			)
 			
-		},
+		}
 		
 	}
 
@@ -30,6 +35,12 @@
 		} else if (typeof method === 'object' || !method) {
 			return methods.init.apply(this, arguments);
 		}
+		
+  };
+
+	$.fn.value = function( method ) {  
+		
+		return __getValue($(this));
 		
   };
 
@@ -49,57 +60,66 @@
 		
 	}
 	
-	function __getButton ( el, key ) {
-
-		var buttons = el.data('settings').buttons;
-		if ( buttons && buttons[key] ) return buttons[key];
-		return false;
-
-	}
-	
 	function __build ( el ) {
 		
-		var textarea = $('<textarea></textarea>');
+		var input = $('<textarea></textarea>');
 		
-		textarea.css({
+		input.css({
 			'width': 0,
 			'height': 0,
 			'display': 'none'
 		});
 		
-		if ( __getSetting(el, 'id') ) textarea.attr('id', __getSetting(el, 'id'));
-		if ( __getSetting(el, 'name') ) textarea.attr('name', __getSetting(el, 'name'));
+		if ( __getSetting(el, 'id') ) input.attr('id', __getSetting(el, 'id'));
+		if ( __getSetting(el, 'name') ) input.attr('name', __getSetting(el, 'name'));
 		
-		el.after(textarea);
-		el.attr('contenteditable', true)
-		el.data('textarea', textarea);
+		el.append(input);
+		__setSettings(el, {input: input});
+		__getElement(el, 'textarea').attr('contenteditable', true);
 		
 	}
 	
 	function __binds ( el ) {
 		
 		el.bind('keyup', function () { __update(el) } );
-		if ( __getButton(el, 'bold') ) 
-			$(__getButton(el, 'bold')).bind('click', function (e) { e.preventDefault(); __bold(); } );
-		if ( __getButton(el, 'italic') ) 
-			$(__getButton(el, 'italic')).bind('click', function (e) { e.preventDefault(); __italic() } );
-		if ( __getButton(el, 'link') ) 
-			$(__getButton(el, 'link')).bind('click', function (e) { e.preventDefault(); __link(el) } );
+		
+		if ( __elementExists(el, 'bold') ) 
+			__getElement(el, 'bold').bind(__getBindName('click'), function (e) { e.preventDefault(); __bold(); } );
+		if ( __elementExists(el, 'italic') ) 
+			__getElement(el, 'italic').bind(__getBindName('click'), function (e) { e.preventDefault(); __italic(); } );
+		if ( __elementExists(el, 'smaller') ) 
+			__getElement(el, 'smaller').bind(__getBindName('click'), function (e) { e.preventDefault(); __smaller(); } );
+		if ( __elementExists(el, 'larger') ) 
+			__getElement(el, 'larger').bind(__getBindName('click'), function (e) { e.preventDefault(); __larger(); } );
+		if ( __elementExists(el, 'link') ) 
+			__getElement(el, 'link').bind(__getBindName('click'), function (e) { e.preventDefault(); __link(); } );
 		
 	}
 	
 	function __update ( el ) {
 		
-		__getTextarea(el).html(__getValue(el));
+		__getInput(el).html(__getValue(el));
 		
 	}
 	
+	function __getInput ( el ) {
+		return __getSetting(el, 'input');
+	}
+	
 	function __getTextarea ( el ) {
-		return el.data('textarea');
+		return __getElement(el, 'textarea');
 	}
 	
 	function __getValue ( el ) {
-		return el.html();
+		return __getTextarea(el).html();
+	}
+	
+	function __getElement ( el, name ) {
+		return el.find(__getSetting(el, name));
+	}
+	
+	function __elementExists ( el, name ) {
+		return __getElement(el, name).length
 	}
 	
 	function __exec ( cmd, value ) {
@@ -107,16 +127,32 @@
 		document.execCommand(cmd, false, value);
 	}
 	
+	function __query ( cmd ) {
+		return document.queryCommandValue(cmd);
+	}
+	
 	function __bold () {
-		__exec('bold')
+		__exec('bold');
 	}
 	
 	function __italic () {
-		__exec('italic')
+		__exec('italic');
 	}
 	
-	function __link ( el ) {
-		__exec('CreateLink', prompt(__getSetting(el, 'linkPrompt')));
+	function __smaller () {
+		__exec('fontSize', parseInt(__query('fontSize')) - 1);
+	}
+	
+	function __larger () {
+		__exec('fontSize', parseInt(__query('fontSize')) + 1);
+	}
+	
+	function __link ( message ) {
+		__exec('CreateLink', prompt('Please enter a URL.'));
+	}
+	
+	function __getBindName ( e ) {
+		return e + '.wysiwyg';
 	}
 
 })( jQuery );
