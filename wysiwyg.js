@@ -1,24 +1,28 @@
 (function( $ ){
 	
-	var defaults = {
-		textarea: '.textarea', 
-		bold: '.bold', 
-		italic: '.italic',
-		smaller: '.smaller',
-		larger: '.larger',
-		link: '.link',
-		undo: '.undo',
-		redo: '.redo'
+	var defaults = { 
+		elements: {
+			textarea: '.textarea', 
+			bold: '.bold', 
+			italic: '.italic',
+			underline: '.underline',
+			smaller: '.smaller',
+			larger: '.larger',
+			link: '.link',
+			undo: '.undo',
+			redo: '.redo'
+		}
 	},
 	
 	methods = {
 		
-		init: function ( settings ) {
+		init: function ( settings, els ) {
 			
 			return this.each( 
 				function() {
 					
-					__setSettings($(this), $.extend ({}, defaults, settings, $(this).data()));
+					__setSettings($(this), $.extend (true, {}, defaults, settings, $(this).data()));
+					__setUnique($(this));
 					__build($(this));
 					__binds($(this));
 					__update($(this));
@@ -40,18 +44,11 @@
 		
   };
 
-	$.fn.value = function( method ) {  
-		
-		return __getValue($(this));
-		
-  };
-
 	function __setSettings ( el, object ) {
 		
 		var settings = el.data('settings');
-		settings = $.extend({}, settings, object);
+		settings = $.extend(true, {}, settings, object);
 		el.data('settings', settings);
-		
 	}
 	
 	function __getSetting ( el, key ) {
@@ -62,8 +59,13 @@
 		
 	}
 	
-	function __build ( el ) {
+	function __setUnique ( el ) {
 		
+		__setSettings ( el, { unique: Math.ceil ( Math.random() * 1000 ) } );
+		
+	}
+	
+	function __build ( el ) {
 		var input = $('<textarea></textarea>');
 		
 		input.css({
@@ -77,36 +79,64 @@
 		
 		el.append(input);
 		__setSettings(el, {input: input});
-		__getElement(el, 'textarea').attr('contenteditable', true);
-		__getElement(el, 'textarea').css('overflow', 'auto');
+		__getElement(el, 'textarea').attr('contenteditable', true).css('overflow', 'auto');
 		
 	}
 	
 	function __binds ( el ) {
 		
-		el.bind('keyup', function () { __update(el) } );
+		$('body,html').bind(__getBindName(el, 'keyup', false), function () { 
+			__update(el);
+		});
 		
-		if ( __elementExists(el, 'bold') ) 
-			__getElement(el, 'bold').bind(__getBindName('click'), function (e) { e.preventDefault(); __bold(); } );
-		if ( __elementExists(el, 'italic') ) 
-			__getElement(el, 'italic').bind(__getBindName('click'), function (e) { e.preventDefault(); __italic(); } );
-		if ( __elementExists(el, 'smaller') ) 
-			__getElement(el, 'smaller').bind(__getBindName('click'), function (e) { e.preventDefault(); __smaller(); } );
-		if ( __elementExists(el, 'larger') ) 
-			__getElement(el, 'larger').bind(__getBindName('click'), function (e) { e.preventDefault(); __larger(); } );
-		if ( __elementExists(el, 'link') ) 
-			__getElement(el, 'link').bind(__getBindName('click'), function (e) { e.preventDefault(); __link(); } );
-		if ( __elementExists(el, 'undo') ) 
-			__getElement(el, 'undo').bind(__getBindName('click'), function (e) { e.preventDefault(); __undo(); } );
-		if ( __elementExists(el, 'redo') ) 
-			__getElement(el, 'redo').bind(__getBindName('click'), function (e) { e.preventDefault(); __redo(); } );
+		__getAllElements(el, true).bind(__getBindName(el, 'mouseup', true), function (e) { 
+			__update(el);
+		});
+		
+		__getAllElements(el, false).bind(__getBindName(el, 'mousedown', true), function (e) { 
+			__update(el);
+		});
+		
+		__getAllElements(el, false).bind(__getBindName(el, 'click', true), function (e) { 
+			e.preventDefault();
+		});
+		
+		__getElement(el, 'bold').bind(__getBindName(el, 'mousedown', false), function () { 
+			__bold(); 
+		});
+		
+		__getElement(el, 'italic').bind(__getBindName(el, 'mousedown', false), function () { 
+			__italic();
+		});
+		
+		__getElement(el, 'underline').bind(__getBindName(el, 'mousedown', false), function () { 
+			__underline(); 
+		});
+		
+		__getElement(el, 'smaller').bind(__getBindName(el, 'mousedown', false), function () { 
+			__smaller(); 
+		});
+		
+		__getElement(el, 'larger').bind(__getBindName(el, 'mousedown', false), function () { 
+			__larger(); 
+		});
+		
+		__getElement(el, 'link').bind(__getBindName(el, 'mousedown', false), function () { 
+			__link(); 
+		});
+		
+		__getElement(el, 'undo').bind(__getBindName(el, 'mousedown', false), function () { 
+			__undo(); 
+		});
+		
+		__getElement(el, 'redo').bind(__getBindName(el, 'mousedown', false), function () { 
+			__redo(); 
+		});
 		
 	}
 	
 	function __update ( el ) {
-		
 		__getInput(el).html(__getValue(el));
-		
 	}
 	
 	function __getInput ( el ) {
@@ -121,8 +151,22 @@
 		return __getTextarea(el).html();
 	}
 	
+	function __getElementData ( el ) {
+		return el.data('settings').elements;
+	}
+	
 	function __getElement ( el, name ) {
-		return el.find(__getSetting(el, name));
+		if ( __getElementData(el)[name] ) return el.find(__getElementData(el)[name]);
+		return $('');
+	}
+	
+	function __getAllElements ( el, textarea ) {
+		var list = [];
+		for ( var key in __getElementData(el) ) {
+			if ( textarea || !textarea && key != 'textarea' ) 
+				list.push(__getElementData(el)[key]);
+		}
+		return el.find(list.join(', '));
 	}
 	
 	function __elementExists ( el, name ) {
@@ -146,6 +190,10 @@
 		__exec('italic');
 	}
 	
+	function __underline () {
+		__exec('underline');
+	}
+	
 	function __smaller () {
 		__exec('fontSize', parseInt(__query('fontSize')) - 1);
 	}
@@ -166,8 +214,9 @@
 		__exec('redo');
 	}
 	
-	function __getBindName ( e ) {
-		return e + '.wysiwyg';
+	function __getBindName ( el, e, all ) {
+		if ( all ) return e + '.wysiwyg';
+		return e + '.wysiwyg' + __getSetting (el, 'unique');
 	}
 
 })( jQuery );
