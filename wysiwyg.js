@@ -87,6 +87,7 @@
 		
 		$('body,html').bind(__getBindName(el, 'keyup', false), function () { 
 			__update(el);
+			__updateStatus(el);
 		});
 		
 		__getAllElements(el, true).bind(__getBindName(el, 'mouseup', true), function (e) { 
@@ -99,6 +100,7 @@
 		
 		__getAllElements(el, false).bind(__getBindName(el, 'click', true), function (e) { 
 			e.preventDefault();
+			__updateStatus(el);
 		});
 		
 		__getElement(el, 'bold').bind(__getBindName(el, 'mousedown', false), function () { 
@@ -137,6 +139,12 @@
 	
 	function __update ( el ) {
 		__getInput(el).html(__getValue(el));
+	}
+	
+	function __updateStatus ( el ) {
+		__query('bold') == 'true' ? __getElement(el, 'bold').addClass('true') : __getElement(el, 'bold').removeClass('true');
+		__query('italic') == 'true' ? __getElement(el, 'italic').addClass('true') : __getElement(el, 'italic').removeClass('true');
+		__query('underline') == 'true' ? __getElement(el, 'underline').addClass('true') : __getElement(el, 'underline').removeClass('true');
 	}
 	
 	function __getInput ( el ) {
