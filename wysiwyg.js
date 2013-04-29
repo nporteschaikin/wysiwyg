@@ -147,7 +147,7 @@
 		__exec('fontSize', parseInt(__query('fontSize')) + 1);
 	}
 	
-	function __link ( message ) {
+	function __link () {
 		__exec('CreateLink', prompt('Please enter a URL.'));
 	}
 	
